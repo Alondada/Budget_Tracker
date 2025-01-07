@@ -1,0 +1,162 @@
+@page "/register"
+@using BudgetTracker.Components.Layout
+@using BudgetTracker.Models
+@layout FirstLayout
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-content-center align-items-center vh-100" style="background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);">
+    <div class="glass-card shadow-lg p-4" style="width: 100%; max-width: 400px;">
+        <div class="text-center">
+            <h4 class="text-white fw-bold mb-3">Create Your Account</h4>
+            <p class="text-light">Join us and start tracking your budget today</p>
+        </div>
+
+        <!-- Username Field -->
+        <div class="mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent text-white border-0"><i class="bi bi-person"></i></span>
+                <input type="text"
+                       id="username"
+                       class="form-control text-white bg-transparent border-0 border-bottom"
+                       placeholder="Enter your username"
+                       @bind="RegisterUsername" />
+            </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent text-white border-0"><i class="bi bi-lock"></i></span>
+                <input type="password"
+                       id="password"
+                       class="form-control text-white bg-transparent border-0 border-bottom"
+                       placeholder="Enter your password"
+                       @bind="RegisterPassword" />
+            </div>
+        </div>
+
+        <!-- Email Field -->
+        <div class="mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent text-white border-0"><i class="bi bi-envelope"></i></span>
+                <input type="email"
+                       id="email"
+                       class="form-control text-white bg-transparent border-0 border-bottom"
+                       placeholder="Enter your email"
+                       @bind="RegisterEmail" />
+            </div>
+        </div>
+
+        <!-- Register Button -->
+        <div class="d-grid mb-3">
+            <button class="btn btn-gradient shadow-lg fw-bold" @onclick="RegisterPage">Sign Up</button>
+        </div>
+
+        <!-- Login Link -->
+        <div class="text-center mt-3">
+            <a href="/" class="text-decoration-none text-light">Already have an account? <strong>Login</strong></a>
+        </div>
+
+        <!-- Success/Error Message -->
+        @if (!string.IsNullOrEmpty(Message))
+        {
+                <div class="alert @((Message.Contains("successful") ? "alert-success" : "alert-danger")) mt-3 text-center" role="alert">
+                @Message
+                </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* Futuristic Glassmorphic Card */
+    .glass-card {
+        backdrop-filter: blur(15px);
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 20px;
+    }
+
+    /* Gradient Button */
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff7e5f, #feb47b);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 12px;
+        font-size: 1rem;
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-gradient:hover {
+        background: linear-gradient(90deg, #feb47b, #ff7e5f);
+        transform: translateY(-2px);
+    }
+
+    /* Input Fields */
+    .form-control {
+        border-radius: 0;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+        color: white;
+        background: transparent;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        box-shadow: none;
+        border-color: white;
+    }
+
+    .input-group-text {
+        font-size: 1.25rem;
+    }
+
+    /* Body Background */
+    body {
+        font-family: 'Roboto', sans-serif;
+        color: white;
+    }
+</style>
+
+@code {
+    private string RegisterUsername = "";
+    private string RegisterPassword = "";
+    private string RegisterEmail = "";
+    private string Message = "";
+
+    private List<User> Users = new();
+
+    protected override void OnInitialized()
+    {
+        Users = UserService.fetchUsers();
+    }
+
+    private void RegisterPage()
+    {
+        if (string.IsNullOrWhiteSpace(RegisterUsername) || string.IsNullOrWhiteSpace(RegisterPassword))
+        {
+            Message = "Username and password are required.";
+            return;
+        }
+
+        if (Users.Any(a => a.username == RegisterUsername))
+        {
+            Message = "Username already exists.";
+            return;
+        }
+
+        var newUser = new User
+            {
+                username = RegisterUsername,
+                password = UserService.hashPassword(RegisterPassword),
+                mail = RegisterEmail
+            };
+
+        Users.Add(newUser);
+        UserService.saveUsers(Users);
+
+        Message = "Registration successful. Redirecting to login...";
+        Task.Delay(2000).ContinueWith(_ => NavigationManager.NavigateTo("/"));
+    }
+}

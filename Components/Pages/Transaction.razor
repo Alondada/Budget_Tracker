@@ -1,0 +1,182 @@
+@page "/transaction"
+@using System.Globalization
+@using BudgetTracker.Models
+@inject UserService UserService
+
+<h3 class="text-center mt-3">Transaction History</h3>
+
+<div class="row justify-content-between mt-4">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input type="text"
+                   class="form-control shadow-sm"
+                   placeholder="Search by transaction type."
+                   @bind="searchTerm"
+                   @oninput="ApplySearch"
+                   @onkeydown="HandleKeyPress" />
+        </div>
+    </div>
+</div>
+
+@if (filteredTransactions?.Count > 0)
+{
+        <div class="table-responsive mt-4">
+            <table class="table table-bordered table-hover align-middle shadow-lg">
+                <thead class="bg-secondary text-white">
+                    <tr>
+                        <th>Transaction Id</th>
+                        <th>
+                            <button class="btn btn-link p-0 text-decoration-none text-white fw-bold" @onclick="SortByDate">
+                                Date
+                            @if (isDateSortedAscending)
+                            {
+                                        <span>&uarr;</span>
+                            }
+                            else
+                            {
+                                        <span>&darr;</span>
+                            }
+                            </button>
+                        </th>
+                            <th>Type</th>
+                                <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var transaction in filteredTransactions)
+                {
+                            <tr>
+                                <td>@transaction.Id</td>
+                                <td>@transaction.Date.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                <td>
+                                @transaction.Type
+                                </td>
+                                        <td>@transaction.Amount.ToString("C", new CultureInfo("en-IN"))</td>
+                                <td>@transaction.Description</td>
+                            </tr>
+                }
+                    <tr>
+                        <td colspan="5" class="text-end fw-bold">
+                            Total Transactions: @filteredTransactions.Count
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-center mt-4">
+            <button class="btn btn-danger shadow-sm" @onclick="ClearTransactionHistory">Clear All</button>
+        </div>
+}
+else
+{
+        <p class="text-center text-muted mt-4">No transactions found.</p>
+}
+
+<style>
+    .table {
+        background-color: #ffffff;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 1rem;
+        }
+
+        .table thead th {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f2f8fc;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+    .btn-link {
+        font-size: 0.9rem;
+        font-weight: bold;
+        cursor: pointer;
+        color: inherit;
+    }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.7rem;
+        border-radius: 0.5rem;
+    }
+</style>
+
+@code {
+    private List<BudgetTracker.Models.Transaction> Transactions = new();
+    private List<BudgetTracker.Models.Transaction> filteredTransactions = new();
+    private string searchTerm = string.Empty;
+    private bool isDateSortedAscending = true;
+
+    protected override void OnInitialized()
+    {
+        var username = UserService.activeUsername;
+
+        if (!string.IsNullOrEmpty(username))
+        {
+            Transactions = UserService.fetchUserTransaction(username);
+            filteredTransactions = new List<BudgetTracker.Models.Transaction>(Transactions);
+        }
+    }
+
+    private void SortByDate()
+    {
+        if (isDateSortedAscending)
+        {
+            filteredTransactions = filteredTransactions.OrderByDescending(t => t.Date).ToList();
+        }
+        else
+        {
+            filteredTransactions = filteredTransactions.OrderBy(t => t.Date).ToList();
+        }
+        isDateSortedAscending = !isDateSortedAscending;
+    }
+
+    private void ApplySearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredTransactions = new List<BudgetTracker.Models.Transaction>(Transactions);
+        }
+        else
+        {
+            filteredTransactions = Transactions
+                .Where(t => t.Type.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+            t.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    t.Date.ToString("yyyy-MM-dd").ToLower().Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplySearch();
+        }
+    }
+
+    private void ClearTransactionHistory()
+    {
+        var username = UserService.activeUsername;
+        if (!string.IsNullOrEmpty(username))
+        {
+            UserService.clearTransactions(username);
+            Transactions.Clear();
+            filteredTransactions.Clear();
+        }
+    }
+}

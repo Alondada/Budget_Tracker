@@ -1,0 +1,8 @@
+C:\Users\USER-\Desktop\3rd year\C sharp\Budget_Tracker\Budget_Tracker\BudgetTracker\wwwroot\css\bootstrap\bootstrap.min.css.map
+C:\Users\USER-\Desktop\3rd year\C sharp\Budget_Tracker\Budget_Tracker\BudgetTracker\wwwroot\css\bootstrap\bootstrap.min.css
+C:\Users\USER-\Desktop\3rd year\C sharp\Budget_Tracker\Budget_Tracker\BudgetTracker\wwwroot\css\app.css
+C:\Users\USER-\Desktop\3rd year\C sharp\Budget_Tracker\Budget_Tracker\BudgetTracker\wwwroot\index.html
+wwwroot\css\app.css
+wwwroot\css\bootstrap\bootstrap.min.css
+wwwroot\css\bootstrap\bootstrap.min.css.map
+wwwroot\index.html
