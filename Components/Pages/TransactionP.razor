@@ -1,0 +1,53 @@
+﻿@page "/transaction"
+@using BudgetTracker.Models
+@using System.Globalization
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+<div class="container mt-5">
+    <h2 class="mb-4">Transaction Form</h2>
+    <form @onsubmit="addTransaction">
+        <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <input type="text" @bind="rtype" class="form-control" id="type" name="type" placeholder="Enter Type">
+        </div>
+
+        <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input type="number" @bind="ramount" step="1" class="form-control" id="amount" name="amount" placeholder="Enter Amount">
+        </div>
+
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" @bind="rdate" class="form-control" id="date" name="date">
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" @bind="rdescription" id="description" name="description" rows="3" placeholder="Enter Description"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+@code {
+    private string rtype { get; set; } = "";
+    private decimal ramount { get; set; }
+    private DateTime rdate { get; set; } 
+    private string rdescription { get; set; } = "";
+    private List<Transaction> transactions = new();
+
+    private void addTransaction()
+    {
+        var newT = new Transaction
+            {
+                Type = rtype, 
+                Amount = ramount,
+                Date = rdate,
+                Description = rdescription
+            };
+        transactions.Add(newT);
+        UserService.SaveTransactions(transactions);
+    }
+}

@@ -1,0 +1,232 @@
+﻿@page "/dashboard"
+@using BudgetTracker.Models
+@using System.Globalization
+@inject NavigationManager NavigationManager
+@inject UserService UserService
+
+
+<h3 class="text-center fw-bold text-dark mt-4 mb-4">
+    Welcome to your dashboard!
+</h3>
+
+@if (CurrentUser.debt > 0)
+{
+    <div class="d-flex align-items-center justify-content-between bg-light border-start border-5 border-danger p-4 rounded shadow-lg">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-circle-fill text-danger me-3 fs-3"></i>
+            <div>
+                <h5 class="text-danger mb-1 fw-bold">Reminder!</h5>
+                <p class="m-0 text-dark">
+                    @UserService.activeUsername, you have <span class="fw-bold">@CurrentUser.debt.ToString("C", new CultureInfo("en-IN"))</span> pending to be paid.
+                </p>
+            </div>
+        </div>
+        <button class="btn btn-outline-danger btn-sm">Take Action</button>
+    </div>
+
+}
+
+<div class="row mt-4">
+    <!-- Inflows Section -->
+    <div class="col-12 mb-4">
+        <div class="card border-success shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-down-circle me-2"></i>Inflows</h5>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Your Inflows</h5>
+                <p class="card-text fs-5 fw-bold">
+                    <span class="badge bg-light text-success">@CurrentUser?.cashInflow.ToString("C", new CultureInfo("en-IN"))</span>
+                </p>
+                <button class="btn btn-outline-success btn-sm mt-3" @onclick="ShowInputField">
+                    <i class="bi bi-plus-circle me-1"></i>Add Inflows
+                </button>
+
+                @if (IsInputVisible)
+                {
+                        <div class="mt-3">
+                            <input type="number" class="form-control mb-2" @bind="NewCredit" placeholder="Enter inflow amount">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success btn-sm" @onclick="SubmitCredit">Submit</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="HideInputField">Cancel</button>
+                            </div>
+                        </div>
+                }
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                        <div class="text-danger mt-2">@ErrorMessage</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Outflows Section -->
+    <div class="col-12 mb-4">
+        <div class="card border-dark shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-up-circle me-2"></i>Outflows</h5>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Your Outflows</h5>
+                <p class="card-text fs-5 fw-bold">
+                    <span class="badge bg-light text-dark">@CurrentUser?.cashOutflow.ToString("C", new CultureInfo("en-IN"))</span>
+                </p>
+                <button class="btn btn-outline-dark btn-sm mt-3" @onclick="ShowInputFieldDebit">
+                    <i class="bi bi-plus-circle me-1"></i>Add Outflow
+                </button>
+
+                @if (IsInputVisibleDebit)
+                {
+                        <div class="mt-3">
+                            <input type="number" class="form-control mb-2" @bind="NewDebit" placeholder="Enter outflow amount">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-dark btn-sm" @onclick="SubmitDebit">Submit</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="HideInputFieldDebit">Cancel</button>
+                            </div>
+                        </div>
+                }
+
+                @if (!string.IsNullOrEmpty(ErrorMessageDebit))
+                {
+                        <div class="text-danger mt-2">@ErrorMessageDebit</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Debt Section -->
+    <div class="col-12 mb-4">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Debt</h5>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Your Debt</h5>
+                <p class="card-text fs-5 fw-bold">
+                    <span class="badge bg-light text-danger">@CurrentUser?.debt.ToString("C", new CultureInfo("en-IN"))</span>
+                </p>
+                <button class="btn btn-outline-danger btn-sm mt-3" @onclick="ShowInputFieldDept">
+                    <i class="bi bi-plus-circle me-1"></i>Add Debt
+                </button>
+
+                @if (IsInputVisibleDebt)
+                {
+                        <div class="mt-3">
+                            <input type="number" class="form-control mb-2" @bind="NewDebt" placeholder="Enter debt amount">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-danger btn-sm" @onclick="SubmitDebt">Submit</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="HideInputFieldDept">Cancel</button>
+                            </div>
+                        </div>
+                }
+
+                @if (!string.IsNullOrEmpty(ErrorMessageDebt))
+                {
+                        <div class="text-danger mt-2">@ErrorMessageDebt</div>
+                }
+                <button class="btn btn-secondary btn-sm mt-3" @onclick="ClearDebtBalance">
+                    <i class="bi bi-x-circle me-1"></i>Clear Debt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@code {
+    private int NewCredit { get; set; }
+    private int NewDebit { get; set; }
+    private int NewDebt { get; set; }
+    private bool IsInputVisible { get; set; } = false;
+    private bool IsInputVisibleDebit { get; set; } = false;
+    private bool IsInputVisibleDebt { get; set; } = false;
+    private string ErrorMessage { get; set; } = string.Empty;
+    private string ErrorMessageDebit { get; set; } = string.Empty;
+    private string ErrorMessageDebt { get; set; } = string.Empty;
+    private User? CurrentUser { get; set; }
+
+    protected override void OnInitialized()
+    {
+        CurrentUser = UserService.getLoggedInUser();
+    }
+
+    private void ShowInputField() => IsInputVisible = true;
+    private void ShowInputFieldDebit() => IsInputVisibleDebit = true;
+    private void ShowInputFieldDept() => IsInputVisibleDebt = true;
+    private void HideInputField() => IsInputVisible = false;
+    private void HideInputFieldDebit() => IsInputVisibleDebit = false;
+    private void HideInputFieldDept() => IsInputVisibleDebt = false;
+
+    private void SubmitCredit()
+    {
+        if (NewCredit > 0)
+        {
+            UserService.updateCashInflows(UserService.activeUsername, NewCredit);
+            CurrentUser = UserService.getLoggedInUser();
+            NewCredit = 0;
+            IsInputVisible = false;
+            ErrorMessage = string.Empty;
+        }
+        else
+        {
+            ErrorMessage = "Please enter a valid credit amount.";
+        }
+    }
+
+    private void SubmitDebit()
+    {
+        if (NewDebit > 0 && NewDebit <= CurrentUser.cashInflow)
+        {
+            UserService.updateCashOutflow(UserService.activeUsername, NewDebit);
+            CurrentUser = UserService.getLoggedInUser();
+            NewDebit = 0;
+            IsInputVisibleDebit = false;
+            ErrorMessageDebit = string.Empty;
+        }
+        else
+        {
+            if (NewDebit > CurrentUser.cashInflow)
+            {
+                ErrorMessageDebit = "Not sufficient credit balance in your account";
+            }
+            else
+            {
+                ErrorMessageDebit = "Please enter a valid debit amount.";
+            }
+        }
+    }
+
+    private void SubmitDebt()
+    {
+        if (NewDebt > 0)
+        {
+            UserService.updateDebt(UserService.activeUsername, NewDebt);
+            CurrentUser = UserService.getLoggedInUser();
+            NewDebt = 0;
+            IsInputVisibleDebt = false;
+            ErrorMessageDebt = string.Empty;
+        }
+        else
+        {
+            ErrorMessageDebt = "Please enter a valid debt amount.";
+        }
+    }
+
+
+    private void ClearDebtBalance()
+    {
+        try
+        {
+            UserService.clearDebt(UserService.activeUsername);
+            CurrentUser = UserService.getLoggedInUser();
+            ErrorMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+}
